@@ -13,6 +13,7 @@ env:
   - OPENSSL_BRANCH=OpenSSL_1_1_0-stable TPM2TSS_BRANCH=2.2.x TPM2TOOLS_BRANCH=3.X
   - OPENSSL_BRANCH=OpenSSL_1_1_1-stable TPM2TSS_BRANCH=2.2.x TPM2TOOLS_BRANCH=3.X
   global:
+  - OPENSSL_NO_DYNAMIC_ENGINE=yes
   - TPM2TOOLS_TCTI=mssim
   - PATH="${PWD}/installdir/usr/local/bin:${PATH}"
   - PKG_CONFIG_PATH="${PWD}/installdir/usr/local/lib/pkgconfig:/usr/lib/pkgconfig"
@@ -41,7 +42,12 @@ install:
 # OpenSSL 1.0.2 / 1.1.0
   - git clone --branch $OPENSSL_BRANCH --depth=1 https://github.com/openssl/openssl.git
   - pushd openssl
-  - ./config --prefix=/usr/local --openssldir=/usr/local/openssl shared
+  - |
+    if [ "$OPENSSL_NO_DYNAMIC_ENGINE" == "yes" ]; then
+        ./config --prefix=/usr/local --openssldir=/usr/local/openssl shared no-dynamic-engine
+    else
+        ./config --prefix=/usr/local --openssldir=/usr/local/openssl shared
+    fi
   - make -j$(nproc)
   - |
     if [ "$OPENSSL_BRANCH" == "OpenSSL_1_0_2-stable" ]; then
