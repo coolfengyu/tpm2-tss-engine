@@ -7,9 +7,10 @@ dist: xenial
 
 env:
   matrix:
-  - OPENSSL_BRANCH=OpenSSL_1_0_2-stable TPM2TSS_BRANCH=2.2.x TPM2TOOLS_BRANCH=3.X
-  - OPENSSL_BRANCH=OpenSSL_1_1_0-stable TPM2TSS_BRANCH=2.2.x TPM2TOOLS_BRANCH=3.X
-  - OPENSSL_BRANCH=OpenSSL_1_1_1-stable TPM2TSS_BRANCH=2.2.x TPM2TOOLS_BRANCH=3.X
+  - OPENSSL_BRANCH=OpenSSL_1_0_2-stable TPM2TSS_BRANCH=2.2.x TPM2TOOLS_BRANCH=3.X OPENSSL_OPTIONS="shared" TEST_OPTIONS="--enable-unit --enable-integration"
+  - OPENSSL_BRANCH=OpenSSL_1_1_0-stable TPM2TSS_BRANCH=2.2.x TPM2TOOLS_BRANCH=3.X OPENSSL_OPTIONS="shared" TEST_OPTIONS="--enable-unit --enable-integration"
+  - OPENSSL_BRANCH=OpenSSL_1_1_1-stable TPM2TSS_BRANCH=2.2.x TPM2TOOLS_BRANCH=3.X OPENSSL_OPTIONS="shared" TEST_OPTIONS="--enable-unit --enable-integration"
+  - OPENSSL_BRANCH=OpenSSL_1_1_1-stable TPM2TSS_BRANCH=2.2.x TPM2TOOLS_BRANCH=3.X OPENSSL_OPTIONS="shared no-dynamic-engine" TEST_OPTIONS="--enable-unit"
   global:
   - TPM2TOOLS_TCTI=mssim
   - PATH="${PWD}/installdir/usr/local/bin:${PATH}"
@@ -39,7 +40,7 @@ install:
 # OpenSSL 1.0.2 / 1.1.0
   - git clone --branch $OPENSSL_BRANCH --depth=1 https://github.com/openssl/openssl.git
   - pushd openssl
-  - ./config --prefix=${PWD}/../installdir/usr/local --openssldir=${PWD}/../installdir/usr/local/openssl shared
+  - ./config --prefix=${PWD}/../installdir/usr/local --openssldir=${PWD}/../installdir/usr/local/openssl $OPENSSL_OPTIONS
   - make -j$(nproc)
   - make install
   - which openssl
@@ -97,7 +98,7 @@ script:
     else
       export SCAN_PREFIX="scan-build --status-bugs"
     fi
-  - $SCAN_PREFIX ../configure $CONFIGURE_OPTIONS --enable-unit --enable-integration
+  - $SCAN_PREFIX ../configure $CONFIGURE_OPTIONS $TEST_OPTIONS
   - $SCAN_PREFIX make -j$(nproc)
   - make -j$(nproc) check
   - cat test-suite.log config.log
